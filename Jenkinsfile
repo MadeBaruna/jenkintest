@@ -13,7 +13,7 @@ def stage(name, execute, block) {
 }
 
 def boolean checkTag() {
-    def tag = ref.replaceAll(/ref\/.*\//, "").trim()
+    def tag = ref.replaceAll(/refs\/.*\//, "").trim()
     
     echo "checking tag $tag"
     if (tag == "main") {
