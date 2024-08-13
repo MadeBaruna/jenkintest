@@ -1,16 +1,24 @@
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 import groovy.transform.Field
 
+@Field def currentEnv = "dev"
+@Field def app = ""
 @Field def skipRemainingStages = false
-@Field def CURRENT_ENV = "dev"
-@Field def APP = ""
 
-def boolean checkEnv() {
+def stage(name, execute, block) {
+    return stage(name, !skipRemainingStages && execute ? block : {
+        echo "Skipped stage $name"
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+    })
+}
+
+def boolean checkTag() {
     def tag = ref.replaceAll(/ref\/.*\//, "").trim()
     
     echo "checking tag $tag"
     if (tag == "main") {
-        CURRENT_ENV = "dev";
-        return
+      echo "Current env: $CURRENT_ENV"
+      return "dev"
     }
     def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
     def matches = parts.matches()
@@ -19,77 +27,51 @@ def boolean checkEnv() {
     }
     def isStaging = parts[0][2] == "-rc"
 
-    CURRENT_ENV = isStaging ? "staging": "prod";
-    APP = parts[0][1]
+    currentEnv = isStaging ? "staging": "prod";
+    app = parts[0][1]
 
-    echo "Current env: $CURRENT_ENV"
-    echo "App: $APP"
+    echo "Current env: $currentEnv"
+    echo "App: $app"
 }
 
-pipeline {
-    agent any
-    parameters {
-        string(name: 'ref', defaultValue: 'ref/head/main', description: 'Ref to build')
+def buildApps() {
+  parallel(
+    api: stage("API", currentEnv == "dev" || app == "api") {
+      echo "BUILD API"
+    },
+    queue: stage("QUEUE", currentEnv == "dev" || app == "queue") {
+      echo "BUILD QUEUE"
+    },
+    portal: stage("PORTAL", currentEnv == "dev" || app == "portal") {
+      echo "BUILD PORTAL"
+    },
+    landing: stage("LANDING", currentEnv == "dev" || app == "landing") {
+      echo "BUILD LANDING"
     }
-    stages {
-        stage('CHECK TAG') {
-            steps {
-                checkEnv()
-            }
+  )
+}
+
+node {
+    stage("CHECK TAG", true) {
+        checkTag()
+    }
+    stage("DEV", currentEnv == "dev") {
+        echo "BUILD DEV"
+        buildApps()
+        skipRemainingStages = true
+    }
+    stage("STAGING", currentEnv == "staging") {
+        echo "BUILD STAGING"
+        buildApps()
+        skipRemainingStages = true
+    }
+    stage('PROD', currentEnv == "prod") {
+        def userInput = input(id: 'confirm', message: 'Approve deployment to PROD?', parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Please confirm you agree with this']])
+        if (!userInput) {
+            error('Deployment to PROD was not approved')
         }
-        stage('DEV') {
-            when {
-                expression {
-                    return CURRENT_ENV == "dev"
-                }   
-            }
-            stages {
-                stage('API') {
-                    steps {
-                        echo "BUILD API"
-                    }
-                }
-                stage('QUEUE') {
-                    steps {
-                        echo "BUILD QUEUE"
-                    }
-                }
-            }
-        }
-        stage('STAGING') {
-            when {
-                expression {
-                    return !skipRemainingStages && CURRENT_ENV == "staging"
-                }
-            }
-            steps {
-                echo "BUILD STAGING"
-            }
-        }
-        stage('PROD APPROVAL') {
-            when {
-                expression {
-                    return !skipRemainingStages && CURRENT_ENV == "prod"
-                }
-            }
-            steps {
-                script {
-                    def userInput = input(id: 'confirm', message: 'Approve deployment to PROD?', parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Please confirm you agree with this']])
-                    if (!userInput) {
-                        error('Deployment to PROD was not approved')
-                    }
-                }
-            }
-        }
-        stage('PROD') {
-            when {
-                expression {
-                    return !skipRemainingStages && CURRENT_ENV == "prod"
-                }
-            }
-            steps {
-                echo "BUILD PROD"
-            }
-        }
+
+        echo "BUILD PROD"
+        buildApps()
     }
 }
