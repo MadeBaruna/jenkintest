@@ -1,8 +1,9 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+import groovy.transform.Field
 
-def currentEnv = "dev"
-def app = ""
-def skipRemainingStages = false
+@Field def currentEnv = "dev"
+@Field def app = ""
+@Field def skipRemainingStages = false
 
 def stage(name, execute, block) {
     return stage(name, !skipRemainingStages && execute ? block : {
