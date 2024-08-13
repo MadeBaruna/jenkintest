@@ -1,5 +1,7 @@
-def skipRemainingStages = false
+import groovy.transform.Field
+
 @Field
+def skipRemainingStages = false
 def currentEnv = "dev"
 
 def String readCurrentTag() {
