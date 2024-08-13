@@ -1,7 +1,7 @@
 import groovy.transform.Field
 
 @Field def skipRemainingStages = false
-@Field def CURRENT_ENV = ""
+@Field def CURRENT_ENV = "dev"
 @Field def APP = ""
 
 def boolean checkEnv() {
@@ -9,7 +9,8 @@ def boolean checkEnv() {
     
     echo "checking tag $tag"
     if (tag == "main") {
-        return "dev"
+        CURRENT_ENV = "dev";
+        return
     }
     def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
     def matches = parts.matches()
