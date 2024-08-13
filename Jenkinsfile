@@ -6,12 +6,10 @@ import groovy.transform.Field
 @Field def skipRemainingStages = false
 
 def stage(name, execute, block) {
-    return stage(name, !skipRemainingStages && execute ? {
-      lock("build")
-      block
-    } : {
+    return stage(name, !skipRemainingStages && execute ? block : {
         echo "Skipped stage $name"
         Utils.markStageSkippedForConditional(STAGE_NAME)
+        sleep 10
     })
 }
 
@@ -39,25 +37,18 @@ def boolean checkTag() {
 }
 
 def buildApps() {
-  parallel (
-    API: {stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
-      echo "BUILD API"
-      sleep 10
-    }},
-    QUEUE: {stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
-      echo "BUILD QUEUE"
-      sleep 10
-    }},
-    PORTAL: {stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
-      echo "BUILD PORTAL"
-      sleep 10
-    }},
-    LANDING: {stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
-      echo "BUILD LANDING"
-      sleep 10
-    }},
-    failFast: true,
-  )
+  stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
+    echo "BUILD API"
+  }
+  stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
+    echo "BUILD QUEUE"
+  }
+  stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
+    echo "BUILD PORTAL"
+  }
+  stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
+    echo "BUILD LANDING"
+  }
 }
 
 node {
