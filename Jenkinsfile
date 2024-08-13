@@ -17,7 +17,7 @@ def boolean checkEnv() {
     return result
 }
 
-def String currentEnv = "dev"
+def currentEnv = "dev"
 
 def tess() {
   echo currentEnv == "dev"
