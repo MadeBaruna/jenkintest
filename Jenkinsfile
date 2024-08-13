@@ -61,10 +61,8 @@ pipeline {
                     return !skipRemainingStages && CURRENT_ENV == "staging"
                 }
             }
-            stages {
-                steps {
-                    echo "BUILD STAGING"
-                }
+            steps {
+                echo "BUILD STAGING"
             }
         }
         stage('PROD APPROVAL') {
@@ -88,11 +86,9 @@ pipeline {
                     return !skipRemainingStages && CURRENT_ENV == "prod"
                 }
             }
-            stages {
-                steps {
-                    echo "BUILD PROD"
-                }
-            }        
+            steps {
+                echo "BUILD PROD"
+            }
         }
     }
 }
