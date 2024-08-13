@@ -1,6 +1,15 @@
-def CURRENT_ENV = "dev"
-def APP = ""
-def SKIP_REMAINING_STAGES = false
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+
+def currentEnv = "dev"
+def app = ""
+def skipRemainingStages = false
+
+def skip(name, execute, block) {
+    return stage(name, !skipRemainingStages && execute ? block : {
+        echo "Skipped stage $name"
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+    })
+}
 
 def boolean checkTag() {
     def tag = ref.replaceAll(/ref\/.*\//, "").trim()
@@ -17,35 +26,26 @@ def boolean checkTag() {
     }
     def isStaging = parts[0][2] == "-rc"
 
-    CURRENT_ENV = isStaging ? "staging": "prod";
-    APP = parts[0][1]
+    currentEnv = isStaging ? "staging": "prod";
+    app = parts[0][1]
 
-    echo "Current env: $CURRENT_ENV"
-    echo "App: $APP"
+    echo "Current env: $currentEnv"
+    echo "App: $app"
 }
 
 node {
-    stage("CHECK TAG") {
+    stage("CHECK TAG", true) {
         checkTag()
     }
-    stage("DEV") {
-        if (CURRENT_ENV != "dev") {
-          return
-        }
-        SKIP_REMAINING_STAGES = true
+    stage("DEV", currentEnv == "dev") {
+        skipRemainingStages = true
         echo "BUILD DEV"
     }
-    stage("STAGING") {
-        if (CURRENT_ENV != "staging") {
-          return
-        }
-        SKIP_REMAINING_STAGES = true
+    stage("STAGING", currentEnv == "staging") {
+        skipRemainingStages = true
         echo "BUILD STAGING"
     }
-    stage('PROD') {
-        if (CURRENT_ENV != "prod") {
-          return
-        }
+    stage('PROD', currentEnv == "prod") {
         def userInput = input(id: 'confirm', message: 'Approve deployment to PROD?', parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Please confirm you agree with this']])
         if (!userInput) {
             error('Deployment to PROD was not approved')
