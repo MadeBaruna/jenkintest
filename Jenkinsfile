@@ -9,7 +9,6 @@ def stage(name, execute, block) {
     return stage(name, !skipRemainingStages && execute ? block : {
         echo "Skipped stage $name"
         Utils.markStageSkippedForConditional(STAGE_NAME)
-        sleep 10
     })
 }
 
@@ -40,15 +39,19 @@ def buildApps() {
   parallel (
     api: {stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
       echo "BUILD API"
+      sleep 10
     }},
     queue: {stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
       echo "BUILD QUEUE"
+      sleep 10
     }},
     portal: {stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
       echo "BUILD PORTAL"
+      sleep 10
     }},
     landing: {stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
       echo "BUILD LANDING"
+      sleep 10
     }},
     failFast: true,
   )
