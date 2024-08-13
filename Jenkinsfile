@@ -6,7 +6,10 @@ import groovy.transform.Field
 @Field def skipRemainingStages = false
 
 def stage(name, execute, block) {
-    return stage(name, !skipRemainingStages && execute ? block : {
+    return stage(name, !skipRemainingStages && execute ? {
+      lock("build")
+      block
+    } : {
         echo "Skipped stage $name"
         Utils.markStageSkippedForConditional(STAGE_NAME)
     })
@@ -37,19 +40,19 @@ def boolean checkTag() {
 
 def buildApps() {
   parallel (
-    api: {stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
+    API: {stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
       echo "BUILD API"
       sleep 10
     }},
-    queue: {stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
+    QUEUE: {stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
       echo "BUILD QUEUE"
       sleep 10
     }},
-    portal: {stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
+    PORTAL: {stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
       echo "BUILD PORTAL"
       sleep 10
     }},
-    landing: {stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
+    LANDING: {stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
       echo "BUILD LANDING"
       sleep 10
     }},
