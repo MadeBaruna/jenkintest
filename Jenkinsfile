@@ -13,7 +13,7 @@ def boolean checkEnv() {
     def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
     echo parts.toString()
     def matches = parts.matches()
-    if (matches) {
+    if (!matches) {
         return "dev"
     }
     def isStaging = false
@@ -50,7 +50,7 @@ pipeline {
         stage('DEV') {
             when {
                 expression {
-                    return currentEnv == "dev"
+                    return CURRENT_ENV == "dev"
                 }
             }
             steps {
@@ -67,7 +67,7 @@ pipeline {
         stage('STAGING') {
             when {
                 expression {
-                    return !skipRemainingStages && currentEnv == "staging"
+                    return !skipRemainingStages && CURRENT_ENV == "staging"
                 }
             }
             steps {
@@ -84,7 +84,7 @@ pipeline {
         stage('PROD APPROVAL') {
             when {
                 expression {
-                    return !skipRemainingStages && currentEnv == "prod"
+                    return !skipRemainingStages && CURRENT_ENV == "prod"
                 }
             }
             steps {
@@ -99,7 +99,7 @@ pipeline {
         stage('PROD') {
             when {
                 expression {
-                    return !skipRemainingStages && currentEnv == "prod"
+                    return !skipRemainingStages && CURRENT_ENV == "prod"
                 }
             }
             steps {
