@@ -35,18 +35,20 @@ def boolean checkTag() {
 }
 
 def buildApps() {
-  stage("API", currentEnv == "dev" || app == "api") {
-    echo "BUILD API"
-  }
-  stage("QUEUE", currentEnv == "dev" || app == "queue") {
-    echo "BUILD QUEUE"
-  }
-  stage("PORTAL", currentEnv == "dev" || app == "portal") {
-    echo "BUILD PORTAL"
-  }
-  stage("LANDING", currentEnv == "dev" || app == "landing") {
-    echo "BUILD LANDING"
-  }
+  parallel(
+    api: stage("API", currentEnv == "dev" || app == "api") {
+      echo "BUILD API"
+    },
+    queue: stage("QUEUE", currentEnv == "dev" || app == "queue") {
+      echo "BUILD QUEUE"
+    },
+    portal: stage("PORTAL", currentEnv == "dev" || app == "portal") {
+      echo "BUILD PORTAL"
+    },
+    landing: stage("LANDING", currentEnv == "dev" || app == "landing") {
+      echo "BUILD LANDING"
+    }
+  )
 }
 
 node {
