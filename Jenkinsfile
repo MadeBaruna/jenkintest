@@ -5,9 +5,10 @@ import groovy.transform.Field
 @Field def APP = ""
 
 def boolean checkEnv() {
-    def tag = ref
+    def tag = ref.replaceAll(/ref\/.*\//, "").trim()
+    
     echo "checking tag $tag"
-    if (tag == null) {
+    if (tag == "main") {
         return "dev"
     }
     def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
@@ -15,10 +16,7 @@ def boolean checkEnv() {
     if (!matches) {
         return "dev"
     }
-    def isStaging = false
-    if (parts.size() > 1) {
-        isStaging = parts[0][2] == "-rc"
-    }
+    def isStaging = parts[0][2] == "-rc"
 
     CURRENT_ENV = isStaging ? "staging": "prod";
     APP = parts[0][1]
@@ -27,15 +25,59 @@ def boolean checkEnv() {
     echo "App: $APP"
 }
 
-def build(app) {
-    if (currentEnv == "staging" || currentEnv == "prod") {
-        if (app != APP) {
-            return
+def buildApps() {
+    return {
+        stage("API") {
+            when {
+                expression {
+                    return CURRENT_ENV == "dev" || APP == "api"
+                }
+            }
+            steps {
+                echo "BUILD API"
+            }
         }
-        return
+        stage("QUEUE") {
+            when {
+                expression {
+                    return CURRENT_ENV == "dev" || APP == "queue"
+                }
+            }
+            steps {
+                echo "BUILD QUEUE"
+            }
+        }
+        stage("PORTAL") {
+            when {
+                expression {
+                    return CURRENT_ENV == "dev" || APP == "portal"
+                }
+            }
+            steps {
+                echo "BUILD PORTAL"
+            }
+        }
+        stage("LANDING") {
+            when {
+                expression {
+                    return CURRENT_ENV == "dev" || APP == "landing"
+                }
+            }
+            steps {
+                echo "BUILD LANDING"
+            }
+        }
+        stage("SKIP") {
+            when {
+                expression {
+                    return CURRENT_ENV != "prod"
+                }
+            }
+            steps {
+                skipRemainingStages = true
+            }
+        }
     }
-
-    echo "Building $app"
 }
 
 pipeline {
@@ -53,18 +95,9 @@ pipeline {
             when {
                 expression {
                     return CURRENT_ENV == "dev"
-                }
+                }   
             }
-            steps {
-                script {
-                    skipRemainingStages = true
-                    echo "BUILD AND DEPLOY DEV"
-                    build("api")
-                    build("queue")
-                    build("portal")
-                    build("landing")
-                }
-            }
+            stages buildApps
         }
         stage('STAGING') {
             when {
@@ -72,16 +105,7 @@ pipeline {
                     return !skipRemainingStages && CURRENT_ENV == "staging"
                 }
             }
-            steps {
-                script {
-                    skipRemainingStages = true
-                    echo "BUILD AND DEPLOY STAGING"
-                    build("api")
-                    build("queue")
-                    build("portal")
-                    build("landing")
-                }
-            }
+            stages buildApps
         }
         stage('PROD APPROVAL') {
             when {
@@ -104,15 +128,7 @@ pipeline {
                     return !skipRemainingStages && CURRENT_ENV == "prod"
                 }
             }
-            steps {
-                script {
-                    echo "BUILD AND DEPLOY PROD"
-                    build("api")
-                    build("queue")
-                    build("portal")
-                    build("landing")
-                }
-            }
+            stages buildApps
         }
     }
 }
