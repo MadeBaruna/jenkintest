@@ -1,7 +1,7 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 import groovy.transform.Field
 
-@Field def currentEnv = "dev"
+@Field def currentEnv = "DEV"
 @Field def app = ""
 @Field def skipRemainingStages = false
 
@@ -17,17 +17,18 @@ def boolean checkTag() {
     
     echo "checking tag $tag"
     if (tag == "main") {
-      echo "Current env: $CURRENT_ENV"
-      return "dev"
+      echo "Current env: $currentEnv"
+      return
     }
     def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
     def matches = parts.matches()
     if (!matches) {
-        return "dev"
+      echo "Current env: $currentEnv"
+      return
     }
     def isStaging = parts[0][2] == "-rc"
 
-    currentEnv = isStaging ? "staging": "prod";
+    currentEnv = isStaging ? "STAGING": "PROD";
     app = parts[0][1]
 
     echo "Current env: $currentEnv"
@@ -35,37 +36,35 @@ def boolean checkTag() {
 }
 
 def buildApps() {
-  parallel(
-    api: {stage("API", currentEnv == "dev" || app == "api") {
-      echo "BUILD API"
-    }},
-    queue: {stage("QUEUE", currentEnv == "dev" || app == "queue") {
-      echo "BUILD QUEUE"
-    }},
-    portal: {stage("PORTAL", currentEnv == "dev" || app == "portal") {
-      echo "BUILD PORTAL"
-    }},
-    landing: {stage("LANDING", currentEnv == "dev" || app == "landing") {
-      echo "BUILD LANDING"
-    }}
-  )
+  stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
+    echo "BUILD API"
+  }
+  stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
+    echo "BUILD QUEUE"
+  }
+  stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
+    echo "BUILD PORTAL"
+  }
+  stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
+    echo "BUILD LANDING"
+  }
 }
 
 node {
     stage("CHECK TAG", true) {
         checkTag()
     }
-    stage("DEV", currentEnv == "dev") {
+    stage("DEV", currentEnv == "DEV") {
         echo "BUILD DEV"
         buildApps()
         skipRemainingStages = true
     }
-    stage("STAGING", currentEnv == "staging") {
+    stage("STAGING", currentEnv == "STAGING") {
         echo "BUILD STAGING"
         buildApps()
         skipRemainingStages = true
     }
-    stage('PROD', currentEnv == "prod") {
+    stage('PROD', currentEnv == "PROD") {
         def userInput = input(id: 'confirm', message: 'Approve deployment to PROD?', parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Please confirm you agree with this']])
         if (!userInput) {
             error('Deployment to PROD was not approved')
