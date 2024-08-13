@@ -4,28 +4,25 @@ import groovy.transform.Field
 @Field def CURRENT_ENV = ""
 @Field def APP = ""
 
-def String readCurrentTag() {
-    return sh(returnStdout: true, script: "git describe --tags").trim()
-}
-
 def boolean checkEnv() {
-    def tag = readCurrentTag()
+    def tag = $ref
     echo "checking tag $tag"
     if (tag == null) {
         return "dev"
     }
-    def check = tag =~ /(.*)@\d.\d.\d(-rc)?$/
-    def matches = check.matches()
+    def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
+    echo parts.toString()
+    def matches = parts.matches()
     if (matches) {
         return "dev"
     }
     def isStaging = false
-    if (matches.size() > 1) {
-        isStaging = matches[0][2] == "-rc"
+    if (parts.size() > 1) {
+        isStaging = parts[0][2] == "-rc"
     }
 
-    CURRENT_ENV = isStaging ? "staging": isProd ? "prod": "dev"
-    APP = matches[0][1]
+    CURRENT_ENV = isStaging ? "staging": "prod";
+    APP = parts[0][1]
 }
 
 def build(app) {
@@ -41,6 +38,9 @@ def build(app) {
 
 pipeline {
     agent any
+    parameters {
+        string(name: 'ref', defaultValue: 'ref/head/main', description: 'Ref to build')
+    }
     stages {
         stage('CHECK TAG') {
             steps {
