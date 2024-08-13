@@ -4,7 +4,7 @@ def currentEnv = "dev"
 def app = ""
 def skipRemainingStages = false
 
-def skip(name, execute, block) {
+def stage(name, execute, block) {
     return stage(name, !skipRemainingStages && execute ? block : {
         echo "Skipped stage $name"
         Utils.markStageSkippedForConditional(STAGE_NAME)
