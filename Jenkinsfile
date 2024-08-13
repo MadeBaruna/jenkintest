@@ -6,11 +6,10 @@ import groovy.transform.Field
 @Field def skipRemainingStages = false
 
 def stage(name, execute, block) {
-  if (skipRemainingStages || !execute) {
-    return
-  }
-
-  return stage(name, block)
+    return stage(name, !skipRemainingStages && execute ? block : {
+        echo "Skipped stage $name"
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+    })
 }
 
 def boolean checkTag() {
@@ -39,19 +38,15 @@ def boolean checkTag() {
 def buildApps() {
   stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
     echo "BUILD API"
-    sleep 2
   }
   stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
     echo "BUILD QUEUE"
-    sleep 2
   }
   stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
     echo "BUILD PORTAL"
-    sleep 2
   }
   stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
     echo "BUILD LANDING"
-    sleep 2
   }
 }
 
