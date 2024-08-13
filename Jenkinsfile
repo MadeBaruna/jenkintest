@@ -34,17 +34,34 @@ def boolean checkTag() {
     echo "App: $app"
 }
 
+def buildApps() {
+  stage("API", currentEnv == "dev" || app == "api") {
+    echo "BUILD API"
+  }
+  stage("QUEUE", currentEnv == "dev" || app == "queue") {
+    echo "BUILD QUEUE"
+  }
+  stage("PORTAL", currentEnv == "dev" || app == "portal") {
+    echo "BUILD PORTAL"
+  }
+  stage("LANDING", currentEnv == "dev" || app == "landing") {
+    echo "BUILD LANDING"
+  }
+}
+
 node {
     stage("CHECK TAG", true) {
         checkTag()
     }
     stage("DEV", currentEnv == "dev") {
-        skipRemainingStages = true
         echo "BUILD DEV"
+        buildApps()
+        skipRemainingStages = true
     }
     stage("STAGING", currentEnv == "staging") {
-        skipRemainingStages = true
         echo "BUILD STAGING"
+        buildApps()
+        skipRemainingStages = true
     }
     stage('PROD', currentEnv == "prod") {
         def userInput = input(id: 'confirm', message: 'Approve deployment to PROD?', parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Please confirm you agree with this']])
@@ -53,5 +70,6 @@ node {
         }
 
         echo "BUILD PROD"
+        buildApps()
     }
 }
