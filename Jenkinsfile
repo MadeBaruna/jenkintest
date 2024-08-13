@@ -1,5 +1,6 @@
 def skipRemainingStages = false
-def envvvvv = "dev"
+@Field
+def currentEnv = "dev"
 
 def String readCurrentTag() {
     return sh(returnStdout: true, script: "git describe --tags").trim()           
@@ -13,33 +14,28 @@ def boolean checkEnv() {
     }
     def isStaging = tag =~ /api@\d.\d.\d-rc$/
     def isProd = tag =~ /api@\d.\d.\d$/
-    def result = isStaging.matches() ? "staging" : isProd.matches() ? "prod" : "dev"
-    echo "env: $result"
-    return result
-}
-
-def tess() {
-  echo envvvvv == "dev"
-  echo envvvvv == "staging"
-  echo envvvvv == "prod"
+    currentEnv = isStaging.matches() ? "staging" : isProd.matches() ? "prod" : "dev"
+    echo "env: $currentEnv"
+    echo currentEnv == "dev"
+    echo currentEnv == "staging"
+    echo currentEnv == "prod"
 }
 
 pipeline {
     agent any
 
     stages {
-        stage('Check Tag') {
+        stage('CHECK TAG') {
             steps {
                 script {
-                  envvvvv = checkEnv()
-                  tess()
+                    checkEnv()
                 }
             }
         }
         stage('DEV'){
             when {
               expression {
-                envvvvv == "dev"
+                currentEnv == "dev"
               }
             }
             steps {
@@ -52,7 +48,7 @@ pipeline {
         stage('STAGING') {
             when {
                 expression {
-                   !skipRemainingStages && envvvvv == "staging"
+                   !skipRemainingStages && currentEnv == "staging"
                 }
                 tag pattern: "api@\\d.\\d.\\d-rc\$5", comparator: "REGEXP"
             }
@@ -66,7 +62,7 @@ pipeline {
         stage('PROD APPROVAL') {
             when {
                 expression {
-                  !skipRemainingStages && envvvvv == "prod"
+                  !skipRemainingStages && currentEnv == "prod"
                 }
                 tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
@@ -82,7 +78,7 @@ pipeline {
         stage('PROD') {
             when {
                 expression {
-                    !skipRemainingStages && envvvvv == "prod"
+                    !skipRemainingStages && currentEnv == "prod"
                 }
                 tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
