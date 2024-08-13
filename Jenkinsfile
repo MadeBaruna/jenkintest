@@ -38,7 +38,7 @@ pipeline {
         stage('DEV'){
             when {
               expression {
-                currentEnv == "dev"
+                return currentEnv == "dev"
               }
             }
             steps {
@@ -51,7 +51,7 @@ pipeline {
         stage('STAGING') {
             when {
                 expression {
-                   !skipRemainingStages && currentEnv == "staging"
+                  return!skipRemainingStages && currentEnv == "staging"
                 }
                 tag pattern: "api@\\d.\\d.\\d-rc\$5", comparator: "REGEXP"
             }
@@ -65,7 +65,7 @@ pipeline {
         stage('PROD APPROVAL') {
             when {
                 expression {
-                  !skipRemainingStages && currentEnv == "prod"
+                  return !skipRemainingStages && currentEnv == "prod"
                 }
                 tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
@@ -81,7 +81,7 @@ pipeline {
         stage('PROD') {
             when {
                 expression {
-                    !skipRemainingStages && currentEnv == "prod"
+                  return !skipRemainingStages && currentEnv == "prod"
                 }
                 tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
