@@ -2,13 +2,15 @@ def skipRemainingStages = false
 
 def boolean checkEnv() {
     def tag = readCurrentTag()
-    echo "checking version tag $tag"
+    echo "checking tag $tag"
     if (tag == null) {
         return "dev"
     }
     def isStaging = tag =~ /api@\d.\d.\d-rc$/
     def isProd = tag =~ /api@\d.\d.\d$/
-    return isStaging.matches() ? "staging" : isProd.matches() ? "prod" : "dev"
+    def result = isStaging.matches() ? "staging" : isProd.matches() ? "prod" : "dev"
+    echo "env: $result"
+    return result
 }
 
 def String readCurrentTag() {
