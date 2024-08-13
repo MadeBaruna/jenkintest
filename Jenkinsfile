@@ -49,7 +49,7 @@ def buildApps() {
     },
     landing: stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
       echo "BUILD LANDING"
-    }
+    },
   )
 }
 
