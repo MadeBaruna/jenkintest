@@ -17,16 +17,26 @@ def boolean checkEnv() {
     return result
 }
 
-def String currentEnv = checkEnv()
+def String currentEnv = "dev"
 
-echo currentEnv == "dev"
-echo currentEnv == "staging"
-echo currentEnv == "prod"
+def tess() {
+  echo currentEnv == "dev"
+  echo currentEnv == "staging"
+  echo currentEnv == "prod"
+}
 
 pipeline {
     agent any
 
     stages {
+        stage('Check Tag') {
+            steps {
+                script {
+                  currentEnv = checkEnv()
+                  tess()
+                }
+            }
+        }
         stage('DEV'){
             when {
               expression {
