@@ -11,7 +11,6 @@ def boolean checkEnv() {
         return "dev"
     }
     def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
-    echo parts.toString()
     def matches = parts.matches()
     if (!matches) {
         return "dev"
@@ -23,6 +22,9 @@ def boolean checkEnv() {
 
     CURRENT_ENV = isStaging ? "staging": "prod";
     APP = parts[0][1]
+
+    echo "Current env: $CURRENT_ENV"
+    echo "App: $APP"
 }
 
 def build(app) {
