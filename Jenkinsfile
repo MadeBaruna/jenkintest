@@ -1,5 +1,8 @@
-def skipRemainingStages = false
-def currentEnv = "dev"
+import groovy.transform.Field
+
+@Field def skipRemainingStages = false
+@Field def CURRENT_ENV = ""
+@Field def APP = ""
 
 def String readCurrentTag() {
     return sh(returnStdout: true, script: "git describe --tags").trim()
@@ -11,9 +14,29 @@ def boolean checkEnv() {
     if (tag == null) {
         return "dev"
     }
-    def isStaging = tag =~ /api@\d.\d.\d-rc$/
-    def isProd = tag =~ /api@\d.\d.\d$/
-    return isStaging.matches() ? "staging": isProd.matches() ? "prod": "dev"
+    def check = tag =~ /(.*)@\d.\d.\d(-rc)?$/
+    def matches = check.matches()
+    if (matches) {
+        return "dev"
+    }
+    def isStaging = false
+    if (matches.size() > 1) {
+        isStaging = matches[0][2] == "-rc"
+    }
+
+    CURRENT_ENV = isStaging ? "staging": isProd ? "prod": "dev"
+    APP = matches[0][1]
+}
+
+def build(app) {
+    if (currentEnv == "staging" || currentEnv == "prod") {
+        if (app != APP) {
+            return
+        }
+        return
+    }
+
+    echo "Building $app"
 }
 
 pipeline {
@@ -21,9 +44,7 @@ pipeline {
     stages {
         stage('CHECK TAG') {
             steps {
-                script {
-                    currentEnv = checkEnv()
-                }
+                checkEnv()
             }
         }
         stage('DEV') {
@@ -36,6 +57,10 @@ pipeline {
                 script {
                     skipRemainingStages = true
                     echo "BUILD AND DEPLOY DEV"
+                    build("api")
+                    build("queue")
+                    build("portal")
+                    build("landing")
                 }
             }
         }
@@ -49,6 +74,10 @@ pipeline {
                 script {
                     skipRemainingStages = true
                     echo "BUILD AND DEPLOY STAGING"
+                    build("api")
+                    build("queue")
+                    build("portal")
+                    build("landing")
                 }
             }
         }
@@ -76,6 +105,10 @@ pipeline {
             steps {
                 script {
                     echo "BUILD AND DEPLOY PROD"
+                    build("api")
+                    build("queue")
+                    build("portal")
+                    build("landing")
                 }
             }
         }
