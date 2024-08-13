@@ -5,7 +5,7 @@ import groovy.transform.Field
 @Field def APP = ""
 
 def boolean checkEnv() {
-    def tag = $ref
+    def tag = ref
     echo "checking tag $tag"
     if (tag == null) {
         return "dev"
