@@ -6,10 +6,11 @@ import groovy.transform.Field
 @Field def skipRemainingStages = false
 
 def stage(name, execute, block) {
-    return stage(name, !skipRemainingStages && execute ? block : {
-        echo "Skipped stage $name"
-        Utils.markStageSkippedForConditional(STAGE_NAME)
-    })
+  if (skipRemainingStages || !execute) {
+    return
+  }
+
+  return stage(name, block)
 }
 
 def boolean checkTag() {
