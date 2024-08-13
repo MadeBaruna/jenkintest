@@ -25,61 +25,6 @@ def boolean checkEnv() {
     echo "App: $APP"
 }
 
-def buildApps() {
-    return {
-        stage("API") {
-            when {
-                expression {
-                    return CURRENT_ENV == "dev" || APP == "api"
-                }
-            }
-            steps {
-                echo "BUILD API"
-            }
-        }
-        stage("QUEUE") {
-            when {
-                expression {
-                    return CURRENT_ENV == "dev" || APP == "queue"
-                }
-            }
-            steps {
-                echo "BUILD QUEUE"
-            }
-        }
-        stage("PORTAL") {
-            when {
-                expression {
-                    return CURRENT_ENV == "dev" || APP == "portal"
-                }
-            }
-            steps {
-                echo "BUILD PORTAL"
-            }
-        }
-        stage("LANDING") {
-            when {
-                expression {
-                    return CURRENT_ENV == "dev" || APP == "landing"
-                }
-            }
-            steps {
-                echo "BUILD LANDING"
-            }
-        }
-        stage("SKIP") {
-            when {
-                expression {
-                    return CURRENT_ENV != "prod"
-                }
-            }
-            steps {
-                skipRemainingStages = true
-            }
-        }
-    }
-}
-
 pipeline {
     agent any
     parameters {
@@ -105,7 +50,11 @@ pipeline {
                     return !skipRemainingStages && CURRENT_ENV == "staging"
                 }
             }
-            stages buildApps
+            stages {
+                steps {
+                    echo "BUILD STAGING"
+                }
+            }
         }
         stage('PROD APPROVAL') {
             when {
@@ -128,7 +77,11 @@ pipeline {
                     return !skipRemainingStages && CURRENT_ENV == "prod"
                 }
             }
-            stages buildApps
+            stages {
+                steps {
+                    echo "BUILD PROD"
+                }
+            }        
         }
     }
 }
