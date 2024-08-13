@@ -18,9 +18,10 @@ def boolean checkEnv() {
     def isProd = tag =~ /api@\d.\d.\d$/
     currentEnv = isStaging.matches() ? "staging" : isProd.matches() ? "prod" : "dev"
     echo "env: $currentEnv"
-    echo currentEnv == "dev"
-    echo currentEnv == "staging"
-    echo currentEnv == "prod"
+    def isDev = currentEnv == "dev"
+    def isStg = currentEnv == "staging"
+    def isProd = currentEnv == "prod"
+    echo "$isDev $isStg $isProd"
 }
 
 pipeline {
