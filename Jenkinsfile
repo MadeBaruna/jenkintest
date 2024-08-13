@@ -37,7 +37,7 @@ def boolean checkTag() {
 }
 
 def buildApps() {
-  parallel {
+  parallel (
     api: stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
       echo "BUILD API"
     }
@@ -50,7 +50,7 @@ def buildApps() {
     landing: stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
       echo "BUILD LANDING"
     }
-  }
+  )
 }
 
 node {
