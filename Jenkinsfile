@@ -5,6 +5,11 @@ pipeline {
 
     stages {
         stage('DEV'){
+            when {
+              not {
+                buildingTag()
+              }
+            }
             steps {
                 script {
                     skipRemainingStages = true
@@ -17,6 +22,7 @@ pipeline {
                 expression {
                     !skipRemainingStages
                 }
+                tag pattern: "api@\\d.\\d.\\d-rc$", comparator: "REGEXP"
             }
             steps {
                 script {
@@ -30,6 +36,7 @@ pipeline {
                 expression {
                     !skipRemainingStages
                 }
+                tag pattern: "api@\\d.\\d.\\d$", comparator: "REGEXP"
             }
             steps {
                 script {
@@ -45,6 +52,7 @@ pipeline {
                 expression {
                     !skipRemainingStages
                 }
+                tag pattern: "api@\\d.\\d.\\d$", comparator: "REGEXP"
             }
             steps {
                 script {
