@@ -42,7 +42,18 @@ pipeline {
                     return CURRENT_ENV == "dev"
                 }   
             }
-            stages buildApps
+            stages {
+                stage('API') {
+                    steps {
+                        echo "BUILD API"
+                    }
+                }
+                stage('QUEUE') {
+                    steps {
+                        echo "BUILD QUEUE"
+                    }
+                }
+            }
         }
         stage('STAGING') {
             when {
