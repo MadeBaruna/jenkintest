@@ -39,19 +39,19 @@ def boolean checkTag() {
 def buildApps() {
   stage("$currentEnv: API", currentEnv == "DEV" || app == "api") {
     echo "BUILD API"
-    sleep 10
+    sleep 2
   }
   stage("$currentEnv: QUEUE", currentEnv == "DEV" || app == "queue") {
     echo "BUILD QUEUE"
-    sleep 10
+    sleep 2
   }
   stage("$currentEnv: PORTAL", currentEnv == "DEV" || app == "portal") {
     echo "BUILD PORTAL"
-    sleep 10
+    sleep 2
   }
   stage("$currentEnv: LANDING", currentEnv == "DEV" || app == "landing") {
     echo "BUILD LANDING"
-    sleep 10
+    sleep 2
   }
 }
 
