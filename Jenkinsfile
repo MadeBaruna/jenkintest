@@ -1,5 +1,9 @@
 def skipRemainingStages = false
 
+def String readCurrentTag() {
+    return sh(returnStdout: true, script: "git describe --tags").trim()           
+}
+
 def boolean checkEnv() {
     def tag = readCurrentTag()
     echo "checking tag $tag"
@@ -13,9 +17,11 @@ def boolean checkEnv() {
     return result
 }
 
-def String readCurrentTag() {
-    return sh(returnStdout: true, script: "git describe --tags").trim()           
-}
+def String currentEnv = checkEnv()
+
+echo currentEnv == "dev"
+echo currentEnv == "staging"
+echo currentEnv == "prod"
 
 pipeline {
     agent any
@@ -24,7 +30,7 @@ pipeline {
         stage('DEV'){
             when {
               expression {
-                checkEnv() == "dev"
+                currentEnv == "dev"
               }
             }
             steps {
@@ -37,7 +43,7 @@ pipeline {
         stage('STAGING') {
             when {
                 expression {
-                    !skipRemainingStages && checkEnv() == "staging"
+                   !skipRemainingStages && currentEnv == "staging"
                 }
                 tag pattern: "api@\\d.\\d.\\d-rc\$5", comparator: "REGEXP"
             }
@@ -51,7 +57,7 @@ pipeline {
         stage('PROD APPROVAL') {
             when {
                 expression {
-                    !skipRemainingStages && checkEnv() == "prod"
+                  !skipRemainingStages && currentEnv == "prod"
                 }
                 tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
@@ -67,7 +73,7 @@ pipeline {
         stage('PROD') {
             when {
                 expression {
-                    !skipRemainingStages && checkEnv() == "prod"
+                    !skipRemainingStages && currentEnv == "prod"
                 }
                 tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
