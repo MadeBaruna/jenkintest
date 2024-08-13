@@ -22,7 +22,7 @@ pipeline {
                 expression {
                     !skipRemainingStages
                 }
-                tag pattern: "api@\\d.\\d.\\d-rc$", comparator: "REGEXP"
+                tag pattern: "api@\\d.\\d.\\d-rc\$5", comparator: "REGEXP"
             }
             steps {
                 script {
@@ -36,7 +36,7 @@ pipeline {
                 expression {
                     !skipRemainingStages
                 }
-                tag pattern: "api@\\d.\\d.\\d$", comparator: "REGEXP"
+                tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
             steps {
                 script {
@@ -52,7 +52,7 @@ pipeline {
                 expression {
                     !skipRemainingStages
                 }
-                tag pattern: "api@\\d.\\d.\\d$", comparator: "REGEXP"
+                tag pattern: "api@\\d.\\d.\\d\$5", comparator: "REGEXP"
             }
             steps {
                 script {
