@@ -20,7 +20,7 @@ def boolean checkTag() {
       echo "Current env: $currentEnv"
       return
     }
-    def parts = tag =~ /(.*)@\d.\d.\d(-rc)?$/
+    def parts = tag =~ /(.*)@\d+\.\d+\.\d+(-rc)?$/
     def matches = parts.matches()
     if (!matches) {
       echo "Current env: $currentEnv"
